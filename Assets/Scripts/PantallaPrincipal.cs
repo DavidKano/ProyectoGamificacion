@@ -11,18 +11,16 @@ public class PantallaPrincipal : MonoBehaviour
     void Start()
     {
         string avatarSeleccionado = PlayerPrefs.GetString("avatarSeleccionado", "masculino");
-        
+
         if (avatarSeleccionado == "masculino")
 
             imagenAvatar.sprite = avatarMasculino;
 
         else if (avatarSeleccionado == "femenino")
-        
-            imagenAvatar.sprite = avatarFemenino;
 
+            imagenAvatar.sprite = avatarFemenino;             
 
-        
+       
     }
-
   
 }

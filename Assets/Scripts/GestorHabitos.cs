@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using System;
 
 public class GestorHabitos : MonoBehaviour
 {
@@ -26,12 +27,13 @@ public class GestorHabitos : MonoBehaviour
             return;
 
         GameObject nuevoHabito = Instantiate(prefabtItemHabito, contenedorHabitos);
-        nuevoHabito.GetComponent<ItemHabito>().Configurar(texto,this);
+        nuevoHabito.GetComponent<ItemHabito>().Configurar(texto, this);
 
         // Crear y añadir a la lista de datos
         Habito nuevoDato = new Habito();
         nuevoDato.texto = texto;
         nuevoDato.completado = false;
+        nuevoDato.tiempoCompletado = 0;
         listaHabitos.Add(nuevoDato);
 
 
@@ -69,11 +71,38 @@ public class GestorHabitos : MonoBehaviour
             foreach (Habito habito in datosCargados.habitos)
             {
                 GameObject nuevoHabito = Instantiate(prefabtItemHabito, contenedorHabitos);
+                ItemHabito item = nuevoHabito.GetComponent<ItemHabito>();
                 nuevoHabito.GetComponent<ItemHabito>().Configurar(habito.texto, this, habito.completado);
                 listaHabitos.Add(habito);
+
+                long ahora = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+                if (habito.tiempoCompletado > 0)
+                {
+                    long diferencia = ahora - habito.tiempoCompletado;
+
+                    if (diferencia < 43200) // 12 horas en segundos
+                    {
+                        item.toggleCompletado.isOn = true;
+                        item.toggleCompletado.interactable = false;
+                    }
+                }
             }
         }
     }
+
+    public void GuardarTiempoDeCompletado(string texto)
+    {
+        foreach (var habito in listaHabitos)
+        {
+            if (habito.texto == texto)
+            {
+                habito.tiempoCompletado = DateTimeOffset.Now.ToUnixTimeSeconds();
+                break;
+            }
+        }
+    }
+
 
 }
 

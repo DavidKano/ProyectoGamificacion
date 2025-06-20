@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,10 +19,19 @@ public class ItemHabito : MonoBehaviour
     public void Configurar(string texto, GestorHabitos g = null, bool estadoCompletado = false)
     {
         textoHabito.text = texto;
-        toggleCompletado.isOn = estadoCompletado;
+        toggleCompletado.onValueChanged.RemoveAllListeners();
+        //toggleCompletado.isOn = estadoCompletado;
+        //toggleCompletado.onValueChanged.AddListener((_) => CambiarEstadoToggle());
+
+
         completado = estadoCompletado;
 
         gestor = g;
+
+        toggleCompletado.SetIsOnWithoutNotify(estadoCompletado);
+
+        toggleCompletado.onValueChanged.AddListener(delegate { CambiarEstadoToggle(); });
+            
     }
 
     public Habito ObtenerDatos()
@@ -73,26 +83,36 @@ public class ItemHabito : MonoBehaviour
 
     public void CambiarEstadoToggle()
     {
-        completado = toggleCompletado.isOn;
+        // Si se intenta desmarcar manualmente, no lo permitimos
+        if (!toggleCompletado.isOn)
+        {
+            toggleCompletado.isOn = true;
+            return;
+        }
+
+        completado = true; // Como no se puede desmarcar, esto siempre es true
+
+        // Bloqueamos el toggle para que no se pueda cambiar
+        toggleCompletado.interactable = false;
 
         if (gestor != null)
         {
-            // Actualizar el estado del hábito en la lista
+            // Guardamos el estado en la lista de hábitos
             int index = transform.GetSiblingIndex();
             if (index >= 0 && index < gestor.listaHabitos.Count)
             {
-                gestor.listaHabitos[index].completado = completado;
+                gestor.listaHabitos[index].completado = true;
+                gestor.listaHabitos[index].tiempoCompletado = DateTimeOffset.Now.ToUnixTimeSeconds(); // ← Aquí se guarda el tiempo
             }
 
             gestor.GuardarHabitos();
         }
-        if (completado)
-        {
-            GestorJugador jugador = FindObjectOfType<GestorJugador>();
-            if (jugador != null)
-                jugador.GanarXP(10); // Suma 10 XP por ejemplo
-        }
 
+        // Ganar XP
+        GestorJugador jugador = FindObjectOfType<GestorJugador>();
+        if (jugador != null)
+            jugador.GanarXP(10);
     }
+
 
 }
